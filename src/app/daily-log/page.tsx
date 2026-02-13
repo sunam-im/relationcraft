@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -14,7 +14,7 @@ const RichEditor = dynamic(() => import('@/components/RichEditor'), {
   ),
 });
 
-export default function DailyLogPage() {
+function DailyLogContent() {
   const searchParams = useSearchParams();
   const [selectedDate, setSelectedDate] = useState('');
   const [content, setContent] = useState('');
@@ -156,5 +156,13 @@ export default function DailyLogPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DailyLogPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto p-8">로딩 중...</div>}>
+      <DailyLogContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
 type Postman = {
@@ -22,6 +22,8 @@ export default function PostmanPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('전체');
   const [sortBy, setSortBy] = useState('updatedAt');
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchPostmen();
@@ -57,6 +59,52 @@ export default function PostmanPage() {
     }
   };
 
+  // CSV 내보내기
+  const handleExport = () => {
+    window.location.href = '/api/postman/export';
+  };
+
+  // CSV 가져오기
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/postman/import', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        const { successCount, failCount, errors } = data.data;
+        let message = `가져오기 완료!\n성공: ${successCount}명`;
+        if (failCount > 0) {
+          message += `\n실패: ${failCount}건`;
+          if (errors.length > 0) {
+            message += '\n\n오류 내용:\n' + errors.join('\n');
+          }
+        }
+        alert(message);
+        fetchPostmen();
+      } else {
+        alert('가져오기 실패: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Failed to import:', error);
+      alert('가져오기 중 오류가 발생했습니다.');
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   // 검색 + 필터 + 정렬 적용
   const filteredPostmen = postmen
     .filter((person) => {
@@ -77,7 +125,7 @@ export default function PostmanPage() {
       if (sortBy === 'takeScore') return b.takeScore - a.takeScore;
       if (sortBy === 'totalScore')
         return (b.giveScore + b.takeScore) - (a.giveScore + a.takeScore);
-      return 0; // updatedAt은 API에서 이미 정렬됨
+      return 0;
     });
 
   if (loading) {
@@ -88,12 +136,31 @@ export default function PostmanPage() {
     <div className="container mx-auto p-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">포스트맨 100명</h1>
-        <Link
-          href="/postman/new"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          + 포스트맨 추가
-        </Link>
+        <div className="flex gap-2">
+          <button
+            onClick={handleExport}
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-sm"
+          >
+            CSV 내보내기
+          </button>
+          <label className={`bg-amber-500 text-white px-4 py-2 rounded hover:bg-amber-600 text-sm cursor-pointer ${importing ? 'opacity-50' : ''}`}>
+            {importing ? '가져오는 중...' : 'CSV 가져오기'}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleImport}
+              disabled={importing}
+              className="hidden"
+            />
+          </label>
+          <Link
+            href="/postman/new"
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-sm"
+          >
+            + 포스트맨 추가
+          </Link>
+        </div>
       </div>
 
       {/* 검색 / 필터 / 정렬 */}

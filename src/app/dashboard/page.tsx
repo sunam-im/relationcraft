@@ -160,7 +160,7 @@ export default function DashboardPage() {
                   outerRadius={110}
                   paddingAngle={5}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }: any) => `${name ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`}
                 >
                   <Cell fill="#3B82F6" />
                   <Cell fill="#10B981" />
