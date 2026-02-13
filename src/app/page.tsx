@@ -9,7 +9,7 @@ export default function Home() {
           <p className="text-xl text-gray-600">1인 기업을 위한 관계 관리 CRM</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
           <Link href="/postman" className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition transform hover:-translate-y-1">
             <div className="text-4xl mb-4">📇</div>
             <h2 className="text-2xl font-bold mb-2">포스트맨 100명</h2>
@@ -28,11 +28,16 @@ export default function Home() {
             <p className="text-gray-600">주간 3가지 목표</p>
           </Link>
 
-          <Link href="/dashboard" className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition transform hover:-translate-y-1 opacity-50 cursor-not-allowed pointer-events-none">
+          <Link href="/calendar" className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition transform hover:-translate-y-1">
+            <div className="text-4xl mb-4">🗓️</div>
+            <h2 className="text-2xl font-bold mb-2">캘린더</h2>
+            <p className="text-gray-600">일정 한눈에 보기</p>
+          </Link>
+
+          <Link href="/dashboard" className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition transform hover:-translate-y-1">
             <div className="text-4xl mb-4">📊</div>
             <h2 className="text-2xl font-bold mb-2">대시보드</h2>
             <p className="text-gray-600">Give & Take 분석</p>
-            <span className="text-xs text-gray-400 mt-2 block">준비 중</span>
           </Link>
         </div>
 
@@ -56,14 +61,22 @@ export default function Home() {
               <span>상호작용 기록 (Give & Take)</span>
             </div>
             <div className="flex items-center">
-              <span className="text-gray-300 mr-2">⏳</span>
-              <span className="text-gray-400">대시보드</span>
+              <span className="text-green-500 mr-2">✅</span>
+              <span>캘린더</span>
+            </div>
+            <div className="flex items-center">
+              <span className="text-green-500 mr-2">✅</span>
+              <span>대시보드</span>
+            </div>
+            <div className="flex items-center">
+              <span className="text-green-500 mr-2">✅</span>
+              <span>검색 / 필터 / 정렬</span>
             </div>
           </div>
           <div className="mt-4 pt-4 border-t">
-            <div className="text-sm text-gray-600">완성도: 65%</div>
+            <div className="text-sm text-gray-600">완성도: 90%</div>
             <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-              <div className="bg-blue-600 h-2 rounded-full" style={{ width: '65%' }}></div>
+              <div className="bg-blue-600 h-2 rounded-full" style={{ width: '90%' }}></div>
             </div>
           </div>
         </div>

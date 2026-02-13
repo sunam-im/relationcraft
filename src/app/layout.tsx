@@ -1,5 +1,6 @@
 import './globals.css'
 import Link from 'next/link'
+import MobileNav from '@/components/MobileNav'
 
 export default function RootLayout({
   children,
@@ -15,7 +16,8 @@ export default function RootLayout({
               <Link href="/" className="text-xl font-bold">
                 RelationCraft
               </Link>
-              <div className="flex gap-6">
+              {/* PC 메뉴 */}
+              <div className="hidden md:flex gap-6">
                 <Link href="/postman" className="hover:text-blue-200 transition">
                   포스트맨 100명
                 </Link>
@@ -25,10 +27,15 @@ export default function RootLayout({
                 <Link href="/weekly-plan" className="hover:text-blue-200 transition">
                   Weekly 3 Plan
                 </Link>
+                <Link href="/calendar" className="hover:text-blue-200 transition">
+                  캘린더
+                </Link>
                 <Link href="/dashboard" className="hover:text-blue-200 transition">
                   대시보드
                 </Link>
               </div>
+              {/* 모바일 햄버거 메뉴 */}
+              <MobileNav />
             </div>
           </div>
         </nav>

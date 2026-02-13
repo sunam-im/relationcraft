@@ -25,6 +25,20 @@ type Interaction = {
   date: string;
 };
 
+const INTERACTION_CATEGORIES = [
+  '식사',
+  '커피/차',
+  '소개',
+  '정보제공',
+  '도움요청',
+  '선물',
+  '축하',
+  '조언',
+  '협업',
+  '추천',
+  '기타',
+];
+
 export default function PostmanDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -38,8 +52,9 @@ export default function PostmanDetailPage() {
   const [newInteraction, setNewInteraction] = useState({
     type: 'GIVE',
     category: '',
+    customCategory: '',
     description: '',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
   });
 
   useEffect(() => {
@@ -51,7 +66,7 @@ export default function PostmanDetailPage() {
     try {
       const [postmanRes, interactionsRes] = await Promise.all([
         fetch(`/api/postman/${id}`),
-        fetch(`/api/interaction?postmanId=${id}`)
+        fetch(`/api/interaction?postmanId=${id}`),
       ]);
 
       const postmanData = await postmanRes.json();
@@ -67,7 +82,12 @@ export default function PostmanDetailPage() {
   };
 
   const handleAddInteraction = async () => {
-    if (!newInteraction.category || !newInteraction.description) {
+    const category =
+      newInteraction.category === '기타'
+        ? newInteraction.customCategory
+        : newInteraction.category;
+
+    if (!category || !newInteraction.description) {
       alert('카테고리와 내용을 입력하세요');
       return;
     }
@@ -78,8 +98,11 @@ export default function PostmanDetailPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           postmanId: id,
-          ...newInteraction
-        })
+          type: newInteraction.type,
+          category,
+          description: newInteraction.description,
+          date: newInteraction.date,
+        }),
       });
 
       const data = await res.json();
@@ -87,8 +110,9 @@ export default function PostmanDetailPage() {
         setNewInteraction({
           type: 'GIVE',
           category: '',
+          customCategory: '',
           description: '',
-          date: new Date().toISOString().split('T')[0]
+          date: new Date().toISOString().split('T')[0],
         });
         setShowAddForm(false);
         loadData();
@@ -103,7 +127,7 @@ export default function PostmanDetailPage() {
 
     try {
       const res = await fetch(`/api/interaction/${interactionId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       });
 
       const data = await res.json();
@@ -136,7 +160,9 @@ export default function PostmanDetailPage() {
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold mb-2">{postman.name}</h1>
-            <p className="text-gray-600">{postman.company} {postman.position && `· ${postman.position}`}</p>
+            <p className="text-gray-600">
+              {postman.company} {postman.position && `· ${postman.position}`}
+            </p>
             {postman.phone && <p className="text-gray-600 mt-1">📞 {postman.phone}</p>}
             {postman.email && <p className="text-gray-600">✉️ {postman.email}</p>}
           </div>
@@ -183,7 +209,9 @@ export default function PostmanDetailPage() {
                 <label className="block text-sm font-semibold mb-1">유형</label>
                 <select
                   value={newInteraction.type}
-                  onChange={(e) => setNewInteraction({...newInteraction, type: e.target.value})}
+                  onChange={(e) =>
+                    setNewInteraction({ ...newInteraction, type: e.target.value })
+                  }
                   className="w-full border border-gray-300 rounded px-3 py-2"
                 >
                   <option value="GIVE">GIVE (내가 준 것)</option>
@@ -192,20 +220,40 @@ export default function PostmanDetailPage() {
               </div>
               <div>
                 <label className="block text-sm font-semibold mb-1">카테고리</label>
-                <input
-                  type="text"
+                <select
                   value={newInteraction.category}
-                  onChange={(e) => setNewInteraction({...newInteraction, category: e.target.value})}
+                  onChange={(e) =>
+                    setNewInteraction({ ...newInteraction, category: e.target.value })
+                  }
                   className="w-full border border-gray-300 rounded px-3 py-2"
-                  placeholder="예: 식사, 소개, 정보제공"
-                />
+                >
+                  <option value="">카테고리 선택</option>
+                  {INTERACTION_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+                {newInteraction.category === '기타' && (
+                  <input
+                    type="text"
+                    value={newInteraction.customCategory}
+                    onChange={(e) =>
+                      setNewInteraction({ ...newInteraction, customCategory: e.target.value })
+                    }
+                    className="w-full border border-gray-300 rounded px-3 py-2 mt-2"
+                    placeholder="카테고리를 직접 입력하세요"
+                  />
+                )}
               </div>
             </div>
             <div className="mb-3">
               <label className="block text-sm font-semibold mb-1">내용</label>
               <textarea
                 value={newInteraction.description}
-                onChange={(e) => setNewInteraction({...newInteraction, description: e.target.value})}
+                onChange={(e) =>
+                  setNewInteraction({ ...newInteraction, description: e.target.value })
+                }
                 rows={3}
                 className="w-full border border-gray-300 rounded px-3 py-2"
                 placeholder="상호작용 내용을 자세히 입력하세요"
@@ -216,7 +264,9 @@ export default function PostmanDetailPage() {
               <input
                 type="date"
                 value={newInteraction.date}
-                onChange={(e) => setNewInteraction({...newInteraction, date: e.target.value})}
+                onChange={(e) =>
+                  setNewInteraction({ ...newInteraction, date: e.target.value })
+                }
                 className="border border-gray-300 rounded px-3 py-2"
               />
             </div>
@@ -247,11 +297,13 @@ export default function PostmanDetailPage() {
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        item.type === 'GIVE' 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-green-100 text-green-800'
-                      }`}>
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-semibold ${
+                          item.type === 'GIVE'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-green-100 text-green-800'
+                        }`}
+                      >
                         {item.type}
                       </span>
                       <span className="text-sm font-semibold">{item.category}</span>
