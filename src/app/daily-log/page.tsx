@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
 const RichEditor = dynamic(() => import('@/components/RichEditor'), {
@@ -13,6 +15,7 @@ const RichEditor = dynamic(() => import('@/components/RichEditor'), {
 });
 
 export default function DailyLogPage() {
+  const searchParams = useSearchParams();
   const [selectedDate, setSelectedDate] = useState('');
   const [content, setContent] = useState('');
   const [goals, setGoals] = useState('');
@@ -23,8 +26,9 @@ export default function DailyLogPage() {
 
   useEffect(() => {
     setMounted(true);
-    setSelectedDate(getTodayDate());
-  }, []);
+    const dateParam = searchParams.get('date');
+    setSelectedDate(dateParam || getTodayDate());
+  }, [searchParams]);
 
   useEffect(() => {
     if (selectedDate) {
@@ -92,7 +96,15 @@ export default function DailyLogPage() {
   return (
     <div className="container mx-auto p-8 max-w-4xl">
       <div className="mb-6 flex justify-between items-center">
-        <h1 className="text-3xl font-bold">데일리 로그</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-bold">데일리 로그</h1>
+          <Link
+            href="/daily-log/list"
+            className="text-sm text-blue-500 hover:underline"
+          >
+            목록 보기 →
+          </Link>
+        </div>
         <input
           type="date"
           value={selectedDate}
