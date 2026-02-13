@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getUser } from '@/lib/getUser';
 
-// GET: 포스트맨 목록 조회
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || 'test-user-id'; // 임시 userId
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
 
     const postmen = await prisma.postman.findMany({
-      where: { userId },
+      where: { userId: user.id },
       orderBy: { updatedAt: 'desc' },
       include: {
         _count: {
@@ -31,13 +33,16 @@ export async function GET(request: Request) {
   }
 }
 
-// POST: 새 포스트맨 생성
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { name, company, position, phone, email, category, notes, userId } = body;
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
 
-    // 필수 필드 검증
+    const body = await request.json();
+    const { name, company, position, phone, email, category, notes } = body;
+
     if (!name) {
       return NextResponse.json(
         { success: false, error: 'Name is required' },
@@ -47,7 +52,7 @@ export async function POST(request: Request) {
 
     const postman = await prisma.postman.create({
       data: {
-        userId: userId || 'test-user-id', // 임시 userId
+        userId: user.id!,
         name,
         company,
         position,

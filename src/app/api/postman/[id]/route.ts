@@ -1,24 +1,29 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getUser } from '@/lib/getUser';
 
-// GET: 포스트맨 상세 조회
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
     const postman = await prisma.postman.findUnique({
       where: { id },
       include: {
         interactions: {
           orderBy: { date: 'desc' },
-          take: 10 // 최근 10개 상호작용
+          take: 10
         }
       }
     });
 
-    if (!postman) {
+    if (!postman || postman.userId !== user.id) {
       return NextResponse.json(
         { success: false, error: 'Postman not found' },
         { status: 404 }
@@ -38,12 +43,16 @@ export async function GET(
   }
 }
 
-// PUT: 포스트맨 수정
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
     const body = await request.json();
     const { name, company, position, phone, email, category, notes, lastContact } = body;
@@ -75,12 +84,16 @@ export async function PUT(
   }
 }
 
-// DELETE: 포스트맨 삭제
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
     await prisma.postman.delete({
       where: { id }

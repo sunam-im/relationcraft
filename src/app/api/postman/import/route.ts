@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getUser } from '@/lib/getUser';
 
 export async function POST(request: Request) {
   try {
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const userId = (formData.get('userId') as string) || 'test-user-id';
 
     if (!file) {
       return NextResponse.json(
@@ -24,7 +29,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // 첫 줄은 헤더, 나머지는 데이터
     const dataLines = lines.slice(1);
     let successCount = 0;
     let failCount = 0;
@@ -33,7 +37,6 @@ export async function POST(request: Request) {
     for (let i = 0; i < dataLines.length; i++) {
       try {
         const fields = parseCSVLine(dataLines[i]);
-
         const name = fields[0]?.trim();
         if (!name) {
           failCount++;
@@ -43,7 +46,7 @@ export async function POST(request: Request) {
 
         await prisma.postman.create({
           data: {
-            userId,
+            userId: user.id!,
             name,
             company: fields[1]?.trim() || null,
             position: fields[2]?.trim() || null,
@@ -56,7 +59,6 @@ export async function POST(request: Request) {
             notes: fields[9]?.trim() || null,
           },
         });
-
         successCount++;
       } catch (err) {
         failCount++;
@@ -66,11 +68,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      data: {
-        successCount,
-        failCount,
-        errors: errors.slice(0, 10),
-      },
+      data: { successCount, failCount, errors: errors.slice(0, 10) },
     });
   } catch (error) {
     console.error('POST /api/postman/import error:', error);
@@ -81,7 +79,6 @@ export async function POST(request: Request) {
   }
 }
 
-// CSV 한 줄을 파싱 (큰따옴표 처리)
 function parseCSVLine(line: string): string[] {
   const fields: string[] = [];
   let current = '';
@@ -89,7 +86,6 @@ function parseCSVLine(line: string): string[] {
 
   for (let i = 0; i < line.length; i++) {
     const char = line[i];
-
     if (inQuotes) {
       if (char === '"') {
         if (i + 1 < line.length && line[i + 1] === '"') {
@@ -112,7 +108,6 @@ function parseCSVLine(line: string): string[] {
       }
     }
   }
-
   fields.push(current);
   return fields;
 }

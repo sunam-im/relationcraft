@@ -1,22 +1,27 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getUser } from '@/lib/getUser';
 
 export async function GET(request: Request) {
   try {
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || 'test-user-id';
     const date = searchParams.get('date');
 
     if (date) {
       const log = await prisma.dailyLog.findUnique({
         where: {
           userId_date: {
-            userId,
+            userId: user.id!,
             date: new Date(date)
           }
         }
       });
-      
+
       return NextResponse.json({
         success: true,
         data: log
@@ -24,7 +29,7 @@ export async function GET(request: Request) {
     }
 
     const logs = await prisma.dailyLog.findMany({
-      where: { userId },
+      where: { userId: user.id! },
       orderBy: { date: 'desc' },
       take: 30
     });
@@ -44,8 +49,13 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { date, content, goals, achievements, userId } = body;
+    const { date, content, goals, achievements } = body;
 
     if (!date || !content) {
       return NextResponse.json(
@@ -57,12 +67,12 @@ export async function POST(request: Request) {
     const log = await prisma.dailyLog.upsert({
       where: {
         userId_date: {
-          userId: userId || 'test-user-id',
+          userId: user.id!,
           date: new Date(date)
         }
       },
       create: {
-        userId: userId || 'test-user-id',
+        userId: user.id!,
         date: new Date(date),
         content,
         goals,

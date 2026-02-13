@@ -1,17 +1,20 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getUser } from '@/lib/getUser';
 
-// GET: Interaction 목록 조회
 export async function GET(request: Request) {
   try {
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const postmanId = searchParams.get('postmanId');
-    const userId = searchParams.get('userId') || 'test-user-id';
 
     if (postmanId) {
-      // 특정 포스트맨의 상호작용
       const interactions = await prisma.interaction.findMany({
-        where: { postmanId },
+        where: { postmanId, userId: user.id! },
         orderBy: { date: 'desc' },
         take: 50
       });
@@ -22,9 +25,8 @@ export async function GET(request: Request) {
       });
     }
 
-    // 전체 상호작용 (최근 100개)
     const interactions = await prisma.interaction.findMany({
-      where: { userId },
+      where: { userId: user.id! },
       orderBy: { date: 'desc' },
       take: 100,
       include: {
@@ -50,11 +52,15 @@ export async function GET(request: Request) {
   }
 }
 
-// POST: 새로운 Interaction 생성
 export async function POST(request: Request) {
   try {
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { postmanId, type, category, description, date, userId } = body;
+    const { postmanId, type, category, description, date } = body;
 
     if (!postmanId || !type || !category || !description) {
       return NextResponse.json(
@@ -63,11 +69,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Interaction 생성
     const interaction = await prisma.interaction.create({
       data: {
         postmanId,
-        userId: userId || 'test-user-id',
+        userId: user.id!,
         type,
         category,
         description,
@@ -75,7 +80,6 @@ export async function POST(request: Request) {
       }
     });
 
-    // 포스트맨의 Give/Take 점수 업데이트
     const postman = await prisma.postman.findUnique({
       where: { id: postmanId }
     });

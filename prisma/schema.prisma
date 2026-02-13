@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,18 +6,44 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-postmen      Postman[]
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  password      String?
+  image         String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts     Account[]
+  postmen      Postman[]
   interactions Interaction[]
   dailyLogs    DailyLog[]
   weeklyPlans  WeeklyPlan[]
 }
-// 포스트맨 100명
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
 model Postman {
   id          String   @id @default(cuid())
   userId      String
@@ -32,58 +52,55 @@ model Postman {
   position    String?
   phone       String?
   email       String?
-  category    String   @default("포스트맨") // "포스트맨" or "포스트맨 플러스"
+  category    String   @default("포스트맨")
   giveScore   Int      @default(0)
   takeScore   Int      @default(0)
   lastContact DateTime?
   notes       String?  @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   interactions Interaction[]
-  
+
   @@index([userId])
 }
 
-// Give & Take 상호작용 기록
 model Interaction {
   id          String   @id @default(cuid())
   postmanId   String
   userId      String
-  type        String   // "GIVE" or "TAKE"
-  category    String   // "식사", "소개", "정보제공", "도움요청" etc
+  type        String
+  category    String
   description String   @db.Text
   date        DateTime @default(now())
   createdAt   DateTime @default(now())
-  
+
   postman     Postman  @relation(fields: [postmanId], references: [id], onDelete: Cascade)
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([postmanId])
   @@index([userId])
   @@index([date])
 }
 
-// 데일리 로그
 model DailyLog {
-  id          String   @id @default(cuid())
-  userId      String
-  date        DateTime @db.Date
-  content     String   @db.Text
-  goals       String?  @db.Text
-  achievements String? @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id           String   @id @default(cuid())
+  userId       String
+  date         DateTime @db.Date
+  content      String   @db.Text
+  goals        String?  @db.Text
+  achievements String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([userId, date])
   @@index([userId])
   @@index([date])
 }
 
-// Weekly 3 Plan
 model WeeklyPlan {
   id          String   @id @default(cuid())
   userId      String
@@ -91,14 +108,14 @@ model WeeklyPlan {
   plan1       String?  @db.Text
   plan2       String?  @db.Text
   plan3       String?  @db.Text
-  status1     String   @default("TODO") // "TODO", "DOING", "DONE"
+  status1     String   @default("TODO")
   status2     String   @default("TODO")
   status3     String   @default("TODO")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([userId, weekStart])
   @@index([userId])
   @@index([weekStart])
