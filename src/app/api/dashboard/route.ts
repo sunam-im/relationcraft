@@ -205,10 +205,38 @@ export async function GET() {
       gifts: sixMonthLogs.reduce((s: number, l: any) => s + (l.giftCount || 0), 0),
     };
 
+
+    // 다가오는 생일/기념일 (30일 이내)
+    const allPostmenForEvents = await prisma.postman.findMany({
+      where: { userId },
+      select: { id: true, name: true, birthday: true, anniversary: true, anniversaryLabel: true, profileImage: true },
+    });
+
+    const todayDate = new Date();
+    const upcoming: Array<{id:string;name:string;type:string;label:string;date:string;daysLeft:number;profileImage:string|null}> = [];
+
+    allPostmenForEvents.forEach(p => {
+      [
+        { date: p.birthday, type: 'birthday', label: '생일' },
+        { date: p.anniversary, type: 'anniversary', label: p.anniversaryLabel || '기념일' },
+      ].forEach(evt => {
+        if (!evt.date) return;
+        const d = new Date(evt.date);
+        const thisYear = new Date(todayDate.getFullYear(), d.getMonth(), d.getDate());
+        if (thisYear < todayDate) thisYear.setFullYear(thisYear.getFullYear() + 1);
+        const diff = Math.ceil((thisYear.getTime() - todayDate.getTime()) / (1000*60*60*24));
+        if (diff <= 30) {
+          upcoming.push({ id: p.id, name: p.name, type: evt.type, label: evt.label, date: `${thisYear.getMonth()+1}/${thisYear.getDate()}`, daysLeft: diff, profileImage: p.profileImage });
+        }
+      });
+    });
+    upcoming.sort((a, b) => a.daysLeft - b.daysLeft);
+
     return NextResponse.json({
       success: true,
       data: {
         needContact,
+      upcoming,
         stageCount,
         commStats,
         commTotals,

@@ -6,7 +6,7 @@ import Link from 'next/link';
 type Postman = {
   id: string; name: string; company: string | null; position: string | null;
   phone: string | null; email: string | null; category: string;
-  lastContact: string | null; giveScore: number; takeScore: number;
+  lastContact: string | null; giveScore: number; takeScore: number; relationScore?: number;
   profileImage: string | null;
 };
 
@@ -73,6 +73,7 @@ export default function PostmanPage() {
       if (sortBy === 'name') return a.name.localeCompare(b.name, 'ko');
       if (sortBy === 'give') return b.giveScore - a.giveScore;
       if (sortBy === 'take') return b.takeScore - a.takeScore;
+      if (sortBy === 'score') return (b.relationScore || 0) - (a.relationScore || 0);
       return 0;
     });
 
@@ -127,6 +128,7 @@ export default function PostmanPage() {
               <option value="name">가나다순</option>
               <option value="give">Give순</option>
               <option value="take">Take순</option>
+                    <option value="score">관계점수순</option>
             </select>
           </div>
         </div>
@@ -191,6 +193,10 @@ function PostmanRow({ postman }: { postman: Postman }) {
           {postman.takeScore > 0 && <span className="text-[11px] bg-green-50 dark:bg-green-900/30 text-green-500 px-1.5 py-0.5 rounded">T{postman.takeScore}</span>}
         </div>
       )}
+      {/* 관계 점수 */}
+      <div className={`text-[11px] px-2 py-1 rounded-full font-bold flex-shrink-0 ${(postman.relationScore || 0) >= 70 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : (postman.relationScore || 0) >= 40 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'}`}>
+        ♥{postman.relationScore || 0}
+      </div>
     </Link>
   );
 }

@@ -9,6 +9,7 @@ const menuItems = [
   { href: '/calendar', label: '캘린더', icon: '🗓️', desc: '일정 관리' },
   { href: '/postman/new', label: '포스트맨 추가', icon: '➕', desc: '새 포스트맨 등록' },
   { href: '/daily-log/list', label: '데일리 로그 목록', icon: '📋', desc: '과거 기록 보기' },
+  { href: '/templates', label: '소통 템플릿', icon: '💬', desc: '메시지 템플릿 모음' },
 ];
 
 export default function MorePage() {

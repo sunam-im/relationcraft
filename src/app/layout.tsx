@@ -21,7 +21,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="포스트맨" />
         <meta name="theme-color" content="#2563EB" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" href="/favicon.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
       <body className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">

@@ -9,6 +9,7 @@ interface QuickData {
   weeklyDone: number;
   weeklyTotal: number;
   needContactCount: number;
+  upcoming: Array<{id:string;name:string;type:string;label:string;date:string;daysLeft:number}>;
 }
 
 export default function Home() {
@@ -54,6 +55,7 @@ export default function Home() {
           weeklyDone: d.weeklyPlanSummary?.doneCount || 0,
           weeklyTotal: d.weeklyPlanSummary?.totalCount || 0,
           needContactCount: d.needContact?.length || 0,
+          upcoming: d.upcoming || [],
         });
       }
     } catch (e) { console.error(e); }
@@ -70,6 +72,10 @@ export default function Home() {
       <div className="bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-800 dark:to-indigo-900 text-white px-5 pt-6 pb-8 rounded-b-3xl">
         <div className="max-w-lg mx-auto">
           <div className="text-sm opacity-80 mb-1">{dateStr} ({dayStr})</div>
+          <div className="flex items-center gap-3 mb-2">
+            <img src="/logo.png" alt="포스트맨" className="w-10 h-10" />
+            <span className="text-lg font-bold opacity-90">포스트맨</span>
+          </div>
           <h1 className="text-2xl md:text-3xl font-bold mb-1">{greeting} 👋</h1>
           <p className="text-sm opacity-80">오늘도 소중한 관계를 가꿔보세요</p>
 
@@ -109,6 +115,31 @@ export default function Home() {
             </div>
           </div>
         )}
+        
+        {/* 다가오는 생일/기념일 */}
+        {data && data.upcoming && data.upcoming.length > 0 && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 mb-4">
+            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">🎉 다가오는 이벤트</h2>
+            <div className="space-y-2">
+              {data.upcoming.slice(0, 5).map((evt, i) => (
+                <a key={i} href={`/postman/${evt.id}`}
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${evt.type === 'birthday' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-pink-100 dark:bg-pink-900/30'}`}>
+                    {evt.type === 'birthday' ? '🎂' : '💝'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium dark:text-white">{evt.name}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{evt.label} · {evt.date}</div>
+                  </div>
+                  <div className={`text-xs font-bold px-2 py-1 rounded-full ${evt.daysLeft === 0 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : evt.daysLeft <= 7 ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'}`}>
+                    {evt.daysLeft === 0 ? '오늘!' : `D-${evt.daysLeft}`}
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Today's Actions */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 mb-4">
           <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">오늘 할 일</h2>

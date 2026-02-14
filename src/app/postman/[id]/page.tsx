@@ -18,6 +18,9 @@ type Postman = {
   goals: string | null;
   businessSummary: string | null;
   lifePurpose: string | null;
+  birthday: string | null;
+  anniversary: string | null;
+  anniversaryLabel: string | null;
   meetingCount: number | null;
   communicationMeetings: number | null;
   communicationLetters: number | null;
@@ -199,7 +202,7 @@ export default function PostmanDetailPage() {
 
 
       {/* 확장 프로필 */}
-      {(postman.relationship || postman.age || postman.gender || postman.region || postman.strengths || postman.interests || postman.goals || postman.businessSummary || postman.lifePurpose) && (
+      {(postman.relationship || postman.age || postman.gender || postman.region || postman.strengths || postman.interests || postman.goals || postman.businessSummary || postman.lifePurpose || postman.birthday || postman.anniversary) && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-5 mb-4">
           <h2 className="font-bold text-lg mb-4 dark:text-white">프로필 정보</h2>
           <div className="space-y-3">
@@ -213,6 +216,12 @@ export default function PostmanDetailPage() {
               )}
               {postman.gender && (
                 <span className="inline-flex items-center gap-1 bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 px-3 py-1.5 rounded-full text-sm">{postman.gender === '남' ? '👨' : '👩'} {postman.gender}</span>
+              )}
+              {postman.birthday && (
+                <span className="inline-flex items-center gap-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-full text-sm">🎂 {new Date(postman.birthday).toLocaleDateString('ko-KR', {month:'long',day:'numeric'})}</span>
+              )}
+              {postman.anniversary && (
+                <span className="inline-flex items-center gap-1 bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 px-3 py-1.5 rounded-full text-sm">💝 {postman.anniversaryLabel || '기념일'} ({new Date(postman.anniversary).toLocaleDateString('ko-KR', {month:'long',day:'numeric'})})</span>
               )}
               {postman.region && (
                 <span className="inline-flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-full text-sm">📍 {postman.region}</span>

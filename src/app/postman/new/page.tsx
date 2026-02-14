@@ -12,7 +12,7 @@ export default function NewPostmanPage() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '', company: '', position: '', phone: '', email: '', category: '포스트맨', notes: '',
-    relationship: '', age: '', gender: '', region: '', strengths: '', interests: '', goals: '', businessSummary: '', lifePurpose: ''
+    relationship: '', age: '', gender: '', region: '', strengths: '', interests: '', goals: '', businessSummary: '', lifePurpose: '', birthday: '', anniversary: '', anniversaryLabel: ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -168,6 +168,22 @@ export default function NewPostmanPage() {
 <div>
             <label className="block text-sm font-semibold mb-1 dark:text-gray-300">메모</label>
             <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-4 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="메모 입력" />
+          </div>
+          {/* 생일/기념일 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1 dark:text-gray-300">🎂 생일</label>
+              <input type="date" value={formData.birthday} onChange={e => setFormData({...formData, birthday: e.target.value})}
+                className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm dark:text-white" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 dark:text-gray-300">💝 기념일</label>
+              <input type="date" value={formData.anniversary} onChange={e => setFormData({...formData, anniversary: e.target.value})}
+                className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm dark:text-white" />
+              <input type="text" value={formData.anniversaryLabel} onChange={e => setFormData({...formData, anniversaryLabel: e.target.value})}
+                placeholder="기념일 이름 (예: 첫 미팅, 계약일)"
+                className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm mt-2 dark:text-white" />
+            </div>
           </div>
           <div className="flex gap-3 pt-2">
             <button type="submit" disabled={loading} className="flex-1 bg-blue-500 text-white py-3 rounded-xl font-semibold hover:bg-blue-600 disabled:bg-gray-300 transition">{loading ? '저장 중...' : '저장'}</button>

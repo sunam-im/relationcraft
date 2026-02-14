@@ -29,7 +29,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const { id } = await params;
     const body = await request.json();
-    const { name, company, position, phone, email, category, notes, profileImage, lastContact, relationship, age, gender, region, strengths, interests, goals, businessSummary, lifePurpose, meetingCount, communicationMeetings, communicationLetters, communicationSNS, communicationGifts, stage } = body;
+    const { name, company, position, phone, email, category, notes, profileImage, lastContact, relationship, age, gender, region, strengths, interests, goals, businessSummary, lifePurpose, birthday, anniversary, anniversaryLabel, meetingCount, communicationMeetings, communicationLetters, communicationSNS, communicationGifts, stage } = body;
 
     const postman = await prisma.postman.update({
       where: { id },
@@ -43,6 +43,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         ...(notes !== undefined && { notes: notes || null }),
         ...(profileImage !== undefined && { profileImage: profileImage || null }),
         ...(lastContact !== undefined && { lastContact: new Date(lastContact) }),
+        ...(birthday !== undefined && { birthday: (birthday && birthday.trim()) ? new Date(birthday) : null }),
+        ...(anniversary !== undefined && { anniversary: (anniversary && anniversary.trim()) ? new Date(anniversary) : null }),
+        ...(anniversaryLabel !== undefined && { anniversaryLabel: anniversaryLabel || null }),
       }
     });
 
