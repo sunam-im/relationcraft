@@ -57,6 +57,22 @@ model Postman {
   takeScore   Int      @default(0)
   lastContact DateTime?
   notes       String?  @db.Text
+  profileImage  String?
+  relationship          String?
+  stage                 String   @default("첫만남")
+  age                   Int?
+  gender                String?
+  region                String?
+  strengths             String?
+  interests             String?
+  goals                 String?  @db.Text
+  businessSummary       String?  @db.Text
+  lifePurpose           String?  @db.Text
+  meetingCount          Int?     @default(0)
+  communicationMeetings Int?     @default(0)
+  communicationLetters  Int?     @default(0)
+  communicationSNS      Int?     @default(0)
+  communicationGifts    Int?     @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -91,6 +107,21 @@ model DailyLog {
   content      String   @db.Text
   goals        String?  @db.Text
   achievements String?  @db.Text
+  bookTitle        String?
+  letterCount      Int?     @default(0)
+  callCount        Int?     @default(0)
+  snsCount         Int?     @default(0)
+  giftCount        Int?     @default(0)
+  insight          String?  @db.Text
+  productiveWork   String?  @db.Text
+  infoToConvey     String?  @db.Text
+  infoRecipient    String?
+  successReason    String?  @db.Text
+  myStrengths      String?  @db.Text
+  habitsToDiscard  String?  @db.Text
+  todayAchievement String?  @db.Text
+  achievementSource String?
+  gratitude        String?  @db.Text
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -111,6 +142,45 @@ model WeeklyPlan {
   status1     String   @default("TODO")
   status2     String   @default("TODO")
   status3     String   @default("TODO")
+  name1           String?
+  phone1          String?
+  purpose1        String?
+  location1       String?
+  meetDate1       String?
+  meetTime1       String?
+  myBusiness1     String?  @db.Text
+  theirBusiness1  String?  @db.Text
+  theirInterest1  String?
+  isPlus1         Boolean  @default(false)
+  mealCheck1      String?
+  name2           String?
+  phone2          String?
+  purpose2        String?
+  location2       String?
+  meetDate2       String?
+  meetTime2       String?
+  myBusiness2     String?  @db.Text
+  theirBusiness2  String?  @db.Text
+  theirInterest2  String?
+  isPlus2         Boolean  @default(false)
+  mealCheck2      String?
+  name3           String?
+  phone3          String?
+  purpose3        String?
+  location3       String?
+  meetDate3       String?
+  meetTime3       String?
+  myBusiness3     String?  @db.Text
+  theirBusiness3  String?  @db.Text
+  theirInterest3  String?
+  isPlus3         Boolean  @default(false)
+  mealCheck3      String?
+  meetingNote1     String?  @db.Text
+  nextAction1     String?
+  meetingNote2     String?  @db.Text
+  nextAction2     String?
+  meetingNote3     String?  @db.Text
+  nextAction3     String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

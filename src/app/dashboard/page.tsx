@@ -16,7 +16,23 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
+type NeedContact = {
+  id: string;
+  name: string;
+  company: string | null;
+  position: string | null;
+  profileImage: string | null;
+  phone: string | null;
+  stage: string;
+  daysSince: number;
+  lastContactDate: string;
+  urgency: string;
+};
 type DashboardData = {
+  needContact: NeedContact[];
+  stageCount: Record<string, number>;
+  commStats: { month: string; label: string; letters: number; calls: number; sns: number; gifts: number }[];
+  commTotals: { letters: number; calls: number; sns: number; gifts: number };
   summary: {
     totalPostmen: number;
     totalGiveScore: number;
@@ -84,7 +100,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-8">
+      <div className="max-w-4xl mx-auto px-4 py-6 pb-24">
         <div className="text-center py-20 text-gray-500">대시보드를 불러오는 중...</div>
       </div>
     );
@@ -105,28 +121,90 @@ export default function DashboardPage() {
 
   return (
     <div className="container mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-8">대시보드</h1>
+      <h1 className="text-xl font-bold mb-4 dark:text-white">대시보드</h1>
 
       {/* ===== 요약 카드 ===== */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-indigo-500">
-          <div className="text-sm text-gray-500">총 포스트맨</div>
-          <div className="text-3xl font-bold text-indigo-600">{data.summary.totalPostmen}명</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border-l-4 border-indigo-500">
+          <div className="text-sm text-gray-500 dark:text-gray-400">총 포스트맨</div>
+          <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{data.summary.totalPostmen}명</div>
           <div className="text-xs text-gray-400 mt-1">/ 100명</div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-          <div className="text-sm text-gray-500">총 Give</div>
-          <div className="text-3xl font-bold text-blue-600">{data.summary.totalGiveScore}</div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border-l-4 border-blue-500">
+          <div className="text-sm text-gray-500 dark:text-gray-400">총 Give</div>
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{data.summary.totalGiveScore}</div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-          <div className="text-sm text-gray-500">총 Take</div>
-          <div className="text-3xl font-bold text-green-600">{data.summary.totalTakeScore}</div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border-l-4 border-green-500">
+          <div className="text-sm text-gray-500 dark:text-gray-400">총 Take</div>
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400">{data.summary.totalTakeScore}</div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-amber-500">
-          <div className="text-sm text-gray-500">총 상호작용</div>
-          <div className="text-3xl font-bold text-amber-600">{data.summary.totalInteractions}</div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border-l-4 border-amber-500">
+          <div className="text-sm text-gray-500 dark:text-gray-400">총 상호작용</div>
+          <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{data.summary.totalInteractions}</div>
         </div>
       </div>
+
+      {/* ===== 연락 필요 리마인더 ===== */}
+      {data.needContact && data.needContact.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-6 border-l-4 border-red-500">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-red-600">🔔 연락 필요 ({data.needContact.length}명)</h2>
+            <span className="text-xs text-gray-400">7일 이상 미연락</span>
+          </div>
+          <div className="space-y-2 max-h-[320px] overflow-y-auto">
+            {data.needContact.slice(0, 15).map((p: NeedContact) => (
+              <div key={p.id} className={`flex items-center gap-3 p-2 rounded-lg ${
+                p.urgency === 'high' ? 'bg-red-50 border border-red-200' :
+                p.urgency === 'medium' ? 'bg-yellow-50 border border-yellow-200' : 'bg-gray-50'
+              }`}>
+                {p.profileImage ? (
+                  <img src={p.profileImage} alt="" className="w-9 h-9 rounded-full object-cover" />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                    {p.name.charAt(0)}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <Link href={`/postman/${p.id}`} className="text-sm font-semibold hover:text-blue-500">{p.name}</Link>
+                  <div className="text-xs text-gray-500">{[p.company, p.position].filter(Boolean).join(' · ') || '-'}</div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className={`text-sm font-bold ${p.urgency === 'high' ? 'text-red-500' : p.urgency === 'medium' ? 'text-yellow-600' : 'text-gray-500'}`}>
+                    {p.daysSince}일 전
+                  </div>
+                </div>
+                {p.phone && (
+                  <a href={`tel:${p.phone}`} className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm shrink-0 hover:bg-green-600">📞</a>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ===== 관계 단계 분포 ===== */}
+      {data.stageCount && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">📊 관계 단계 분포</h2>
+            <Link href="/pipeline" className="text-sm text-blue-500 hover:underline">파이프라인 →</Link>
+          </div>
+          <div className="grid grid-cols-5 gap-2">
+            {['첫만남','관계형성','신뢰구축','포스트맨PLUS','VIP'].map(stage => {
+              const count = (data.stageCount && data.stageCount[stage]) || 0;
+              const colors: Record<string,string> = {'첫만남':'bg-gray-100 border-gray-300','관계형성':'bg-blue-100 border-blue-300','신뢰구축':'bg-green-100 border-green-300','포스트맨PLUS':'bg-yellow-100 border-yellow-300','VIP':'bg-purple-100 border-purple-300'};
+              const icons: Record<string,string> = {'첫만남':'🤝','관계형성':'💬','신뢰구축':'🤗','포스트맨PLUS':'⭐','VIP':'👑'};
+              return (
+                <div key={stage} className={`text-center rounded-lg p-3 border ${colors[stage]}`}>
+                  <div className="text-xl">{icons[stage]}</div>
+                  <div className="text-2xl font-bold mt-1">{count}</div>
+                  <div className="text-xs text-gray-600 mt-1">{stage}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ===== 차트 영역 ===== */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

@@ -1,83 +1,168 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+interface QuickData {
+  totalPostmen: number;
+  todayLog: boolean;
+  weeklyDone: number;
+  weeklyTotal: number;
+  needContactCount: number;
+}
+
 export default function Home() {
+  const [data, setData] = useState<QuickData | null>(null);
+  const [greeting, setGreeting] = useState('');
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 6) setGreeting('새벽에도 열심히!');
+    else if (hour < 12) setGreeting('좋은 아침이에요');
+    else if (hour < 18) setGreeting('오늘도 화이팅!');
+    else setGreeting('수고하셨어요');
+
+    loadQuickData();
+  }, []);
+
+  const loadQuickData = async () => {
+    try {
+      const res = await fetch('/api/dashboard');
+      const result = await res.json();
+      if (result.success) {
+        const d = result.data;
+        setData({
+          totalPostmen: d.summary?.totalPostmen || 0,
+          todayLog: d.dailyLogStatus?.[0]?.hasLog || false,
+          weeklyDone: d.weeklyPlanSummary?.doneCount || 0,
+          weeklyTotal: d.weeklyPlanSummary?.totalCount || 0,
+          needContactCount: d.needContact?.length || 0,
+        });
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
+  const days = ['일','월','화','수','목','금','토'];
+  const dayStr = days[today.getDay()];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-800 dark:text-white mb-4">RelationCraft</h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300">1인 기업을 위한 관계 관리 CRM</p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-800 dark:to-indigo-900 text-white px-5 pt-6 pb-8 rounded-b-3xl">
+        <div className="max-w-lg mx-auto">
+          <div className="text-sm opacity-80 mb-1">{dateStr} ({dayStr})</div>
+          <h1 className="text-2xl md:text-3xl font-bold mb-1">{greeting} 👋</h1>
+          <p className="text-sm opacity-80">오늘도 소중한 관계를 가꿔보세요</p>
+
+          {/* Quick Stats */}
+          {data && (
+            <div className="grid grid-cols-3 gap-3 mt-5">
+              <div className="bg-white/15 backdrop-blur rounded-xl p-3 text-center">
+                <div className="text-2xl font-bold">{data.totalPostmen}</div>
+                <div className="text-xs opacity-80">포스트맨</div>
+              </div>
+              <div className="bg-white/15 backdrop-blur rounded-xl p-3 text-center">
+                <div className="text-2xl font-bold">{data.weeklyDone}/{data.weeklyTotal}</div>
+                <div className="text-xs opacity-80">위클리 달성</div>
+              </div>
+              <div className={`${data.needContactCount > 0 ? 'bg-red-500/30' : 'bg-white/15'} backdrop-blur rounded-xl p-3 text-center`}>
+                <div className="text-2xl font-bold">{data.needContactCount}</div>
+                <div className="text-xs opacity-80">연락 필요</div>
+              </div>
+            </div>
+          )}
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
-          <Link href="/postman" className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition transform hover:-translate-y-1">
-            <div className="text-4xl mb-4">📇</div>
-            <h2 className="text-2xl font-bold mb-2 dark:text-white">포스트맨 100명</h2>
-            <p className="text-gray-600 dark:text-gray-400">핵심 인맥 관리</p>
-          </Link>
-
-          <Link href="/daily-log" className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition transform hover:-translate-y-1">
-            <div className="text-4xl mb-4">📝</div>
-            <h2 className="text-2xl font-bold mb-2 dark:text-white">데일리 로그</h2>
-            <p className="text-gray-600 dark:text-gray-400">일일 기록 작성</p>
-          </Link>
-
-          <Link href="/weekly-plan" className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition transform hover:-translate-y-1">
-            <div className="text-4xl mb-4">📅</div>
-            <h2 className="text-2xl font-bold mb-2 dark:text-white">Weekly 3 Plan</h2>
-            <p className="text-gray-600 dark:text-gray-400">주간 3가지 목표</p>
-          </Link>
-
-          <Link href="/calendar" className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition transform hover:-translate-y-1">
-            <div className="text-4xl mb-4">🗓️</div>
-            <h2 className="text-2xl font-bold mb-2 dark:text-white">캘린더</h2>
-            <p className="text-gray-600 dark:text-gray-400">일정 한눈에 보기</p>
-          </Link>
-
-          <Link href="/dashboard" className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition transform hover:-translate-y-1">
-            <div className="text-4xl mb-4">📊</div>
-            <h2 className="text-2xl font-bold mb-2 dark:text-white">대시보드</h2>
-            <p className="text-gray-600 dark:text-gray-400">Give & Take 분석</p>
-          </Link>
-        </div>
-
-        <div className="mt-12 max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-xl font-bold mb-4 dark:text-white">개발 진행 상황</h3>
+      <div className="max-w-lg mx-auto px-5 -mt-4">
+        {/* Today's Actions */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 mb-4">
+          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">오늘 할 일</h2>
           <div className="space-y-2">
-            <div className="flex items-center">
-              <span className="text-green-500 mr-2">✅</span>
-              <span className="dark:text-gray-300">포스트맨 100명 관리</span>
-            </div>
-            <div className="flex items-center">
-              <span className="text-green-500 mr-2">✅</span>
-              <span className="dark:text-gray-300">데일리 로그</span>
-            </div>
-            <div className="flex items-center">
-              <span className="text-green-500 mr-2">✅</span>
-              <span className="dark:text-gray-300">Weekly 3 Plan</span>
-            </div>
-            <div className="flex items-center">
-              <span className="text-green-500 mr-2">✅</span>
-              <span className="dark:text-gray-300">상호작용 기록 (Give & Take)</span>
-            </div>
-            <div className="flex items-center">
-              <span className="text-green-500 mr-2">✅</span>
-              <span className="dark:text-gray-300">캘린더</span>
-            </div>
-            <div className="flex items-center">
-              <span className="text-green-500 mr-2">✅</span>
-              <span className="dark:text-gray-300">대시보드</span>
-            </div>
-            <div className="flex items-center">
-              <span className="text-green-500 mr-2">✅</span>
-              <span className="dark:text-gray-300">검색 / 필터 / 정렬</span>
-            </div>
+            <Link href="/daily-log" className={`flex items-center gap-3 p-3 rounded-xl transition active:scale-[0.98] ${
+              data?.todayLog ? 'bg-green-50 dark:bg-green-900/20' : 'bg-orange-50 dark:bg-orange-900/20'
+            }`}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl bg-white dark:bg-gray-700 shadow-sm">
+                {data?.todayLog ? '✅' : '📝'}
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-semibold dark:text-white">데일리 로그</div>
+                <div className={`text-xs ${data?.todayLog ? 'text-green-500' : 'text-orange-500'}`}>
+                  {data?.todayLog ? '오늘 작성 완료!' : '아직 작성하지 않았어요'}
+                </div>
+              </div>
+              <span className="text-gray-300 text-lg">›</span>
+            </Link>
+
+            <Link href="/weekly-plan" className="flex items-center gap-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 transition active:scale-[0.98]">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl bg-white dark:bg-gray-700 shadow-sm">📅</div>
+              <div className="flex-1">
+                <div className="text-sm font-semibold dark:text-white">위클리 3 플랜</div>
+                <div className="text-xs text-blue-500">
+                  {data ? `${data.weeklyDone}/${data.weeklyTotal} 완료` : '확인하기'}
+                </div>
+              </div>
+              <span className="text-gray-300 text-lg">›</span>
+            </Link>
+
+            {data && data.needContactCount > 0 && (
+              <Link href="/dashboard" className="flex items-center gap-3 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 transition active:scale-[0.98]">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl bg-white dark:bg-gray-700 shadow-sm">🔔</div>
+                <div className="flex-1">
+                  <div className="text-sm font-semibold dark:text-white">연락 필요</div>
+                  <div className="text-xs text-red-500">{data.needContactCount}명에게 연락하세요</div>
+                </div>
+                <span className="text-gray-300 text-lg">›</span>
+              </Link>
+            )}
           </div>
-          <div className="mt-4 pt-4 border-t dark:border-gray-700">
-            <div className="text-sm text-gray-600 dark:text-gray-400">완성도: 95%</div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-2">
-              <div className="bg-blue-600 h-2 rounded-full" style={{ width: '95%' }}></div>
-            </div>
+        </div>
+
+        {/* Quick Menu Grid */}
+        <div className="grid grid-cols-4 gap-3 mb-4">
+          <Link href="/postman" className="flex flex-col items-center gap-1.5 bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-sm transition active:scale-95">
+            <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-2xl">👥</div>
+            <span className="text-xs font-medium dark:text-gray-300">포스트맨</span>
+          </Link>
+          <Link href="/pipeline" className="flex flex-col items-center gap-1.5 bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-sm transition active:scale-95">
+            <div className="w-12 h-12 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-2xl">🔄</div>
+            <span className="text-xs font-medium dark:text-gray-300">파이프라인</span>
+          </Link>
+          <Link href="/calendar" className="flex flex-col items-center gap-1.5 bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-sm transition active:scale-95">
+            <div className="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-2xl">🗓️</div>
+            <span className="text-xs font-medium dark:text-gray-300">캘린더</span>
+          </Link>
+          <Link href="/dashboard" className="flex flex-col items-center gap-1.5 bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-sm transition active:scale-95">
+            <div className="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-2xl">📊</div>
+            <span className="text-xs font-medium dark:text-gray-300">대시보드</span>
+          </Link>
+        </div>
+
+        {/* Motivational Quote */}
+        <div className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl p-5 text-white mb-4 shadow-lg">
+          <div className="text-xs opacity-80 mb-1">💡 오늘의 한마디</div>
+          <p className="text-sm font-medium leading-relaxed">
+            "매일 20분, 포스트맨 수첩을 점검하라.<br/>
+            통화 기록, 카카오톡 대화를 살피고<br/>
+            관계의 씨앗을 뿌려라."
+          </p>
+          <div className="text-xs opacity-70 mt-2 text-right">— 정성만식 포스트맨</div>
+        </div>
+
+        {/* Quick Add */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 mb-8">
+          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">빠른 추가</h2>
+          <div className="grid grid-cols-2 gap-2">
+            <Link href="/postman/new" className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl transition active:scale-[0.98]">
+              <span className="text-lg">➕</span>
+              <span className="text-sm font-medium dark:text-white">포스트맨 추가</span>
+            </Link>
+            <Link href="/daily-log" className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl transition active:scale-[0.98]">
+              <span className="text-lg">✏️</span>
+              <span className="text-sm font-medium dark:text-white">로그 작성</span>
+            </Link>
           </div>
         </div>
       </div>

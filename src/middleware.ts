@@ -5,7 +5,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 공개 경로는 통과
-  const publicPaths = ['/login', '/register', '/api/auth'];
+  const publicPaths = ['/login', '/register', '/api/auth', '/manifest.json', '/sw.js', '/icons'];
   const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
 
   if (isPublicPath) {

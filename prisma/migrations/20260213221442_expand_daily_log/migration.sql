@@ -1,0 +1,16 @@
+-- AlterTable
+ALTER TABLE "DailyLog" ADD COLUMN     "achievementSource" TEXT,
+ADD COLUMN     "bookTitle" TEXT,
+ADD COLUMN     "callCount" INTEGER DEFAULT 0,
+ADD COLUMN     "giftCount" INTEGER DEFAULT 0,
+ADD COLUMN     "gratitude" TEXT,
+ADD COLUMN     "habitsToDiscard" TEXT,
+ADD COLUMN     "infoRecipient" TEXT,
+ADD COLUMN     "infoToConvey" TEXT,
+ADD COLUMN     "insight" TEXT,
+ADD COLUMN     "letterCount" INTEGER DEFAULT 0,
+ADD COLUMN     "myStrengths" TEXT,
+ADD COLUMN     "productiveWork" TEXT,
+ADD COLUMN     "snsCount" INTEGER DEFAULT 0,
+ADD COLUMN     "successReason" TEXT,
+ADD COLUMN     "todayAchievement" TEXT;

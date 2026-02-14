@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { date, content, goals, achievements } = body;
+    const { date, content, goals, achievements, bookTitle, letterCount, callCount, snsCount, giftCount, insight, productiveWork, infoToConvey, infoRecipient, successReason, myStrengths, habitsToDiscard, todayAchievement, achievementSource, gratitude } = body;
 
     if (!date || !content) {
       return NextResponse.json(
@@ -76,12 +76,42 @@ export async function POST(request: Request) {
         date: new Date(date),
         content,
         goals,
-        achievements
+        achievements,
+        bookTitle: bookTitle || null,
+        letterCount: letterCount ? parseInt(letterCount) : 0,
+        callCount: callCount ? parseInt(callCount) : 0,
+        snsCount: snsCount ? parseInt(snsCount) : 0,
+        giftCount: giftCount ? parseInt(giftCount) : 0,
+        insight: insight || null,
+        productiveWork: productiveWork || null,
+        infoToConvey: infoToConvey || null,
+        infoRecipient: infoRecipient || null,
+        successReason: successReason || null,
+        myStrengths: myStrengths || null,
+        habitsToDiscard: habitsToDiscard || null,
+        todayAchievement: todayAchievement || null,
+        achievementSource: achievementSource || null,
+        gratitude: gratitude || null
       },
       update: {
         content,
         goals,
-        achievements
+        achievements,
+        bookTitle: bookTitle || null,
+        letterCount: letterCount ? parseInt(letterCount) : 0,
+        callCount: callCount ? parseInt(callCount) : 0,
+        snsCount: snsCount ? parseInt(snsCount) : 0,
+        giftCount: giftCount ? parseInt(giftCount) : 0,
+        insight: insight || null,
+        productiveWork: productiveWork || null,
+        infoToConvey: infoToConvey || null,
+        infoRecipient: infoRecipient || null,
+        successReason: successReason || null,
+        myStrengths: myStrengths || null,
+        habitsToDiscard: habitsToDiscard || null,
+        todayAchievement: todayAchievement || null,
+        achievementSource: achievementSource || null,
+        gratitude: gratitude || null
       }
     });
 

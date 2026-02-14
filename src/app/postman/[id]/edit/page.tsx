@@ -1,198 +1,207 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function EditPostmanPage() {
-  const router = useRouter();
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
-  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    name: '',
-    company: '',
-    position: '',
-    phone: '',
-    email: '',
-    category: '포스트맨',
-    notes: '',
+    name: '', company: '', position: '', phone: '', email: '', category: '포스트맨', notes: '', relationship: '', age: '', gender: '', region: '', strengths: '', interests: '', goals: '', businessSummary: '', lifePurpose: ''
   });
 
-  useEffect(() => {
-    fetchPostman();
-  }, []);
+  useEffect(() => { loadPostman(); }, [id]);
 
-  const fetchPostman = async () => {
+  const loadPostman = async () => {
     try {
       const res = await fetch(`/api/postman/${id}`);
       const data = await res.json();
       if (data.success) {
-        const postman = data.data;
+        const p = data.data;
         setFormData({
-          name: postman.name,
-          company: postman.company || '',
-          position: postman.position || '',
-          phone: postman.phone || '',
-          email: postman.email || '',
-          category: postman.category,
-          notes: postman.notes || '',
+          name: p.name || '', company: p.company || '', position: p.position || '',
+          phone: p.phone || '', email: p.email || '', category: p.category || '포스트맨', notes: p.notes || '',
+          relationship: p.relationship || '', age: p.age ? String(p.age) : '', gender: p.gender || '', region: p.region || '', strengths: p.strengths || '', interests: p.interests || '', goals: p.goals || '', businessSummary: p.businessSummary || '', lifePurpose: p.lifePurpose || ''
         });
+        setProfileImage(p.profileImage || null);
       }
-    } catch (error) {
-      console.error('Failed to fetch postman:', error);
+    } catch (e) {
+      console.error('Failed to load postman:', e);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.success) {
+        setProfileImage(data.data.url);
+      } else {
+        alert(data.error);
+      }
+    } catch (err) {
+      alert('이미지 업로드 실패');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.name.trim()) { alert('이름을 입력하세요'); return; }
     setSaving(true);
-
     try {
       const res = await fetch(`/api/postman/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, profileImage, age: formData.age ? parseInt(formData.age) : null })
       });
-
       const data = await res.json();
-      if (data.success) {
-        router.push(`/postman/${id}`);
-      } else {
-        alert('저장 실패: ' + data.error);
-      }
-    } catch (error) {
-      console.error('Failed to update postman:', error);
-      alert('저장 중 오류가 발생했습니다.');
+      if (data.success) router.push(`/postman/${id}`);
+      else alert('수정 실패: ' + data.error);
+    } catch (err) {
+      alert('수정 중 오류 발생');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  if (loading) {
-    return <div className="p-8">로딩 중...</div>;
-  }
+  if (loading) return <div className="container mx-auto p-8 text-center">로딩 중...</div>;
 
   return (
-    <div className="container mx-auto p-8 max-w-2xl">
-      <div className="mb-6">
-        <Link href={`/postman/${id}`} className="text-blue-500 hover:underline">
-          ← 상세로 돌아가기
-        </Link>
+    <div className="container mx-auto p-4 max-w-lg">
+      <Link href={`/postman/${id}`} className="inline-flex items-center text-blue-500 hover:text-blue-700 mb-4 text-sm">← 돌아가기</Link>
+
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+        {/* 프로필 이미지 */}
+        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-24 relative">
+          <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-full border-4 border-white dark:border-gray-800 overflow-hidden bg-white dark:bg-gray-700 flex items-center justify-center cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                {uploading ? (
+                  <span className="text-xs text-gray-400">업로드 중...</span>
+                ) : profileImage ? (
+                  <img src={profileImage} alt="프로필" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-2xl text-gray-300">👤</span>
+                )}
+              </div>
+              <div className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs cursor-pointer hover:bg-blue-600" onClick={() => fileInputRef.current?.click()}>📷</div>
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+            </div>
+          </div>
+        </div>
+
+        {/* 수정 폼 */}
+        <form onSubmit={handleSubmit} className="pt-14 p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-semibold mb-1 dark:text-gray-300">이름 *</label>
+            <input type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-semibold mb-1 dark:text-gray-300">회사</label>
+              <input type="text" name="company" value={formData.company} onChange={handleChange} className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1 dark:text-gray-300">직책</label>
+              <input type="text" name="position" value={formData.position} onChange={handleChange} className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-semibold mb-1 dark:text-gray-300">전화번호</label>
+              <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1 dark:text-gray-300">이메일</label>
+              <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1 dark:text-gray-300">구분</label>
+            <select name="category" value={formData.category} onChange={handleChange} className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-4 py-2.5">
+              <option value="포스트맨">포스트맨</option>
+              <option value="포스트맨 플러스">포스트맨 플러스</option>
+            </select>
+          </div>
+          
+            {/* 확장 프로필 */}
+            <div className="border-t pt-4 mt-4">
+              <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">확장 프로필</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1">나와의 관계</label>
+                  <input type="text" value={formData.relationship} onChange={e => setFormData({...formData, relationship: e.target.value})} placeholder="친구, 거래처, 멘토..." className="w-full border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">나이</label>
+                  <input type="number" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} placeholder="나이" className="w-full border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">성별</label>
+                  <select value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700">
+                    <option value="">선택</option>
+                    <option value="남">남</option>
+                    <option value="여">여</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">지역</label>
+                  <input type="text" value={formData.region} onChange={e => setFormData({...formData, region: e.target.value})} placeholder="서울, 부산..." className="w-full border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <label className="block text-sm font-medium mb-1">강점</label>
+                <input type="text" value={formData.strengths} onChange={e => setFormData({...formData, strengths: e.target.value})} placeholder="본인의 강점" className="w-full border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700" />
+              </div>
+              <div className="mt-3">
+                <label className="block text-sm font-medium mb-1">관심사/취미</label>
+                <input type="text" value={formData.interests} onChange={e => setFormData({...formData, interests: e.target.value})} placeholder="관심사, 취미" className="w-full border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700" />
+              </div>
+              <div className="mt-3">
+                <label className="block text-sm font-medium mb-1">목표/가치관</label>
+                <textarea value={formData.goals} onChange={e => setFormData({...formData, goals: e.target.value})} placeholder="목표, 가치관, 방향" rows={2} className="w-full border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700" />
+              </div>
+              <div className="mt-3">
+                <label className="block text-sm font-medium mb-1">사업요약</label>
+                <textarea value={formData.businessSummary} onChange={e => setFormData({...formData, businessSummary: e.target.value})} placeholder="사업 내용 요약" rows={2} className="w-full border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700" />
+              </div>
+              <div className="mt-3">
+                <label className="block text-sm font-medium mb-1">삶의 목적</label>
+                <textarea value={formData.lifePurpose} onChange={e => setFormData({...formData, lifePurpose: e.target.value})} placeholder="삶의 목적" rows={2} className="w-full border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700" />
+              </div>
+            </div>
+
+<div>
+            <label className="block text-sm font-semibold mb-1 dark:text-gray-300">메모</label>
+            <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-4 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button type="submit" disabled={saving} className="flex-1 bg-blue-500 text-white py-3 rounded-xl font-semibold hover:bg-blue-600 disabled:bg-gray-300 transition">{saving ? '저장 중...' : '저장'}</button>
+            <Link href={`/postman/${id}`} className="flex-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 text-center py-3 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-500 transition">취소</Link>
+          </div>
+        </form>
       </div>
-
-      <h1 className="text-3xl font-bold mb-6">포스트맨 수정</h1>
-
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-4">
-        <div>
-          <label className="block text-sm font-semibold mb-1">
-            이름 <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            className="w-full border border-gray-300 rounded px-3 py-2"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold mb-1">회사</label>
-          <input
-            type="text"
-            name="company"
-            value={formData.company}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold mb-1">직책</label>
-          <input
-            type="text"
-            name="position"
-            value={formData.position}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold mb-1">전화번호</label>
-          <input
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold mb-1">이메일</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold mb-1">구분</label>
-          <select
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2"
-          >
-            <option value="포스트맨">포스트맨</option>
-            <option value="포스트맨 플러스">포스트맨 플러스</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold mb-1">메모</label>
-          <textarea
-            name="notes"
-            value={formData.notes}
-            onChange={handleChange}
-            rows={4}
-            className="w-full border border-gray-300 rounded px-3 py-2"
-          />
-        </div>
-
-        <div className="flex gap-3 pt-4">
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-300"
-          >
-            {saving ? '저장 중...' : '저장'}
-          </button>
-          <Link
-            href={`/postman/${id}`}
-            className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 text-center"
-          >
-            취소
-          </Link>
-        </div>
-      </form>
     </div>
   );
 }

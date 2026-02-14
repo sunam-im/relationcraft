@@ -84,16 +84,16 @@ export default function CalendarPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-8">
+      <div className="max-w-4xl mx-auto px-4 py-6 pb-24">
         <div className="text-center py-20 text-gray-500">캘린더를 불러오는 중...</div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-8">
+    <div className="max-w-4xl mx-auto px-4 py-6 pb-24">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">캘린더</h1>
+        <h1 className="text-xl font-bold dark:text-white">캘린더</h1>
         <div className="flex gap-3 text-sm">
           <span className="flex items-center gap-1">
             <span className="w-3 h-3 rounded bg-blue-500 inline-block"></span> Give
@@ -107,7 +107,7 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6" style={{ height: '700px' }}>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-3 md:p-6" style={{ height: 'calc(100vh - 220px)', minHeight: '400px' }}>
         <Calendar
           localizer={localizer}
           events={events}
@@ -133,9 +133,9 @@ export default function CalendarPage() {
       {/* 이벤트 상세 모달 */}
       {selectedEvent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-5 max-w-md w-full mx-4">
             <div className="flex justify-between items-start mb-4">
-              <h2 className="text-xl font-bold">
+              <h2 className="text-lg font-bold dark:text-white">
                 {selectedEvent.type === 'dailyLog' ? '데일리 로그' : '상호작용 기록'}
               </h2>
               <button
@@ -192,7 +192,7 @@ export default function CalendarPage() {
 
               <div>
                 <span className="text-sm text-gray-500">내용</span>
-                <p className="text-gray-700 whitespace-pre-wrap">{selectedEvent.description}</p>
+                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{selectedEvent.description}</p>
               </div>
             </div>
 

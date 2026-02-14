@@ -151,9 +151,67 @@ export async function GET() {
       .slice(0, 5)
       .map((p) => ({ id: p.id, name: p.name, company: p.company, lastContact: p.lastContact }));
 
+    // Reminder: 연락 필요 포스트맨
+    const now = new Date();
+    const needContact = postmen
+      .map(p => {
+        const lastContact = p.lastContact ? new Date(p.lastContact) : p.updatedAt ? new Date(p.updatedAt) : new Date(p.createdAt);
+        const daysSince = Math.floor((now.getTime() - lastContact.getTime()) / (1000 * 60 * 60 * 24));
+        return {
+          id: p.id,
+          name: p.name,
+          company: p.company,
+          position: p.position,
+          profileImage: p.profileImage,
+          phone: p.phone,
+          stage: (p as any).stage || '첫만남',
+          daysSince,
+          lastContactDate: lastContact.toISOString().split('T')[0],
+          urgency: daysSince > 30 ? 'high' : daysSince > 14 ? 'medium' : 'low'
+        };
+      })
+      .filter(p => p.daysSince > 7)
+      .sort((a, b) => b.daysSince - a.daysSince);
+
+    // Stage distribution
+    const stageCount = postmen.reduce((acc, p) => {
+      const stage = (p as any).stage || '첫만남';
+      acc[stage] = (acc[stage] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // 월별 소통 횟수 통계 (데일리로그 기반)
+    const sixMonthLogs = await prisma.dailyLog.findMany({
+      where: { userId, date: { gte: sixMonthsAgo } },
+      orderBy: { date: 'asc' }
+    });
+
+    const commStats = sixMonthLogs.reduce((acc: any[], log: any) => {
+      const month = new Date(log.date).toISOString().slice(0, 7);
+      let entry = acc.find(e => e.month === month);
+      if (!entry) { entry = { month, label: month.slice(5) + '월', letters: 0, calls: 0, sns: 0, gifts: 0 }; acc.push(entry); }
+      entry.letters += log.letterCount || 0;
+      entry.calls += log.callCount || 0;
+      entry.sns += log.snsCount || 0;
+      entry.gifts += log.giftCount || 0;
+      return acc;
+    }, []);
+
+    // 소통 총계
+    const commTotals = {
+      letters: sixMonthLogs.reduce((s: number, l: any) => s + (l.letterCount || 0), 0),
+      calls: sixMonthLogs.reduce((s: number, l: any) => s + (l.callCount || 0), 0),
+      sns: sixMonthLogs.reduce((s: number, l: any) => s + (l.snsCount || 0), 0),
+      gifts: sixMonthLogs.reduce((s: number, l: any) => s + (l.giftCount || 0), 0),
+    };
+
     return NextResponse.json({
       success: true,
       data: {
+        needContact,
+        stageCount,
+        commStats,
+        commTotals,
         summary: { totalPostmen, totalGiveScore, totalTakeScore, totalInteractions: totalGiveScore + totalTakeScore },
         topGive, topTake, topActive, categoryCount,
         monthlyChartData, categoryChartData, latestInteractions,
