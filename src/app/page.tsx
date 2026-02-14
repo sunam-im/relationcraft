@@ -13,6 +13,8 @@ interface QuickData {
 
 export default function Home() {
   const [data, setData] = useState<QuickData | null>(null);
+  const [notices, setNotices] = useState<Array<{id:string;title:string;content:string;createdAt:string}>>([]);
+  const [dismissedNotice, setDismissedNotice] = useState<string>('');
   const [greeting, setGreeting] = useState('');
 
   useEffect(() => {
@@ -23,7 +25,22 @@ export default function Home() {
     else setGreeting('수고하셨어요');
 
     loadQuickData();
+    loadNotices();
+    setDismissedNotice(localStorage.getItem('dismissedNotice') || '');
   }, []);
+
+  const loadNotices = async () => {
+    try {
+      const res = await fetch('/api/notices');
+      const d = await res.json();
+      if (d.success) setNotices(d.data);
+    } catch {}
+  };
+
+  const dismissNotice = (id: string) => {
+    setDismissedNotice(id);
+    localStorage.setItem('dismissedNotice', id);
+  };
 
   const loadQuickData = async () => {
     try {
@@ -77,6 +94,21 @@ export default function Home() {
       </div>
 
       <div className="max-w-lg mx-auto px-5 -mt-4">
+        {/* 공지 배너 */}
+        {notices.length > 0 && notices[0].id !== dismissedNotice && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4 mb-4">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start gap-2 flex-1 min-w-0">
+                <span className="text-lg flex-shrink-0">📢</span>
+                <div className="min-w-0">
+                  <div className="font-bold text-sm text-yellow-800 dark:text-yellow-200">{notices[0].title}</div>
+                  <div className="text-xs text-yellow-700 dark:text-yellow-300 mt-1 line-clamp-2">{notices[0].content}</div>
+                </div>
+              </div>
+              <button onClick={() => dismissNotice(notices[0].id)} className="text-yellow-500 hover:text-yellow-700 text-lg flex-shrink-0">✕</button>
+            </div>
+          </div>
+        )}
         {/* Today's Actions */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 mb-4">
           <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">오늘 할 일</h2>

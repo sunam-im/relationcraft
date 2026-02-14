@@ -13,7 +13,12 @@ const menuItems = [
 
 export default function MorePage() {
   const [darkMode, setDarkMode] = useState(false);
-  useEffect(() => setDarkMode(document.documentElement.classList.contains('dark')), []);
+  const [notices, setNotices] = useState<Array<{id:string;title:string;content:string;createdAt:string}>>([]);
+  const [showNotices, setShowNotices] = useState(false);
+  useEffect(() => {
+    setDarkMode(document.documentElement.classList.contains('dark'));
+    fetch('/api/notices').then(r=>r.json()).then(d=>{ if(d.success) setNotices(d.data); }).catch(()=>{});
+  }, []);
   const toggleDarkMode = () => {
     const html = document.documentElement;
     if (html.classList.contains('dark')) {
@@ -42,6 +47,38 @@ export default function MorePage() {
           </Link>
         ))}
       </div>
+      {/* 공지사항 */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+        <button 
+          onClick={() => setShowNotices(!showNotices)}
+          className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-xl">📢</span>
+            <div className="text-left">
+              <div className="font-medium dark:text-white">공지사항</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">{notices.length}개의 공지</div>
+            </div>
+          </div>
+          <span className="text-gray-400">{showNotices ? '▲' : '▼'}</span>
+        </button>
+        {showNotices && (
+          <div className="border-t border-gray-100 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700">
+            {notices.length === 0 ? (
+              <div className="p-4 text-center text-gray-400 text-sm">공지사항이 없습니다</div>
+            ) : notices.map(n => (
+              <div key={n.id} className="p-4">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-sm dark:text-white">{n.title}</span>
+                  <span className="text-xs text-gray-400">{new Date(n.createdAt).toLocaleDateString('ko-KR')}</span>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{n.content}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">설정</h2>
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden mb-6">
         <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
