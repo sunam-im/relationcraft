@@ -16,12 +16,16 @@ model User {
   emailVerified DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  role          String    @default("user")
+  lastLoginAt   DateTime?
+  isActive      Boolean   @default(true)
 
   accounts     Account[]
   postmen      Postman[]
   interactions Interaction[]
   dailyLogs    DailyLog[]
   weeklyPlans  WeeklyPlan[]
+  adminLogs    AdminLog[]
 }
 
 model Account {
@@ -189,4 +193,27 @@ model WeeklyPlan {
   @@unique([userId, weekStart])
   @@index([userId])
   @@index([weekStart])
+}
+
+
+model Notice {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AdminLog {
+  id        String   @id @default(cuid())
+  adminId   String
+  action    String
+  detail    String?  @db.Text
+  createdAt DateTime @default(now())
+
+  admin     User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([createdAt])
 }
